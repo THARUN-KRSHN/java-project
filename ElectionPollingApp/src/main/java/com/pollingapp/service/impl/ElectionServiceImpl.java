@@ -3,9 +3,9 @@ package com.pollingapp.service.impl;
 import com.pollingapp.model.ElectionControl;
 import com.pollingapp.repository.ElectionRepository;
 import com.pollingapp.service.ElectionService;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.util.Optional;
 
 @Service
 @Transactional
@@ -19,10 +19,11 @@ public class ElectionServiceImpl implements ElectionService {
 
     @Override
     public ElectionControl getControl() {
-        Optional<ElectionControl> o = repo.findAll().stream().findFirst();
-        if (o.isPresent()) return o.get();
-        ElectionControl ec = new ElectionControl(false);
-        return repo.save(ec);
+        // Only 1 row is needed → if missing, create new.
+        return repo.findAll()
+                .stream()
+                .findFirst()
+                .orElseGet(() -> repo.save(new ElectionControl(false)));
     }
 
     @Override

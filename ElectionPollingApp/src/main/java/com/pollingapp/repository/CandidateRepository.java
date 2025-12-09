@@ -5,5 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface CandidateRepository extends JpaRepository<Candidate, Long> {
+
+    // Fetch candidates by category (Admin can organize by category)
     List<Candidate> findByCategory(String category);
 }

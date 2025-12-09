@@ -1,8 +1,10 @@
 package com.pollingapp.controller;
 
-import com.pollingapp.model.User;
 import com.pollingapp.model.Role;
+import com.pollingapp.model.User;
 import com.pollingapp.service.UserService;
+
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -16,11 +18,13 @@ public class AuthController {
         this.userService = userService;
     }
 
+    // ------------------ Home Page ------------------
     @GetMapping({"/", "/home"})
     public String home() {
-        return "home"; // Thymeleaf template: home.html
+        return "home"; // home.html
     }
 
+    // ------------------ Register ------------------
     @GetMapping("/register")
     public String registerForm(Model model) {
         model.addAttribute("user", new User());
@@ -28,20 +32,32 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public String registerSubmit(@ModelAttribute User user, @RequestParam String role, Model model) {
-        Role r = "admin".equalsIgnoreCase(role) ? Role.ROLE_ADMIN : Role.ROLE_VOTER;
+    public String registerSubmit(
+            @ModelAttribute User user,
+            @RequestParam("selectedRole") String selectedRole,
+            Model model) {
+
+        Role role = selectedRole.equalsIgnoreCase("admin") ? Role.ROLE_ADMIN : Role.ROLE_VOTER;
+
         try {
-            userService.registerUser(user.getUsername(), user.getPassword(), r);
-        } catch (IllegalArgumentException ex) {
-            model.addAttribute("error", ex.getMessage());
+            userService.registerUser(user.getUsername(), user.getPassword(), role);
+        } catch (Exception e) {
+            model.addAttribute("error", e.getMessage());
             return "register";
         }
+
         return "redirect:/login";
     }
 
+    // ------------------ Login → Role-Based Redirect ------------------
     @GetMapping("/dashboard")
-    public String dashboard() {
-        // after login, redirect logic can be improved by checking role and returning corresponding dashboard
-        return "dashboard"; // dashboard.html
+    public String dashboard(Authentication authentication) {
+        String username = authentication.getName();
+        Role role = userService.findByUsername(username).get().getRole();
+
+        if (role == Role.ROLE_ADMIN)
+            return "redirect:/admin/dashboard";
+
+        return "redirect:/vote/list";
     }
 }

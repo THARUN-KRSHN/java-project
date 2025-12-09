@@ -19,44 +19,49 @@ public class AdminController {
         this.electionService = electionService;
     }
 
+    // ------------------ Dashboard ------------------
     @GetMapping("/dashboard")
     public String adminDashboard(Model model) {
         model.addAttribute("candidates", candidateService.listAll());
         model.addAttribute("control", electionService.getControl());
-        return "admin/dashboard";
+        return "admin/dashboard"; // /templates/admin/dashboard.html
     }
 
+    // ------------------ Add Candidate ------------------
     @GetMapping("/candidates/add")
-    public String addForm(Model model) {
+    public String addCandidateForm(Model model) {
         model.addAttribute("candidate", new Candidate());
         return "admin/addCandidate";
     }
 
     @PostMapping("/candidates/add")
-    public String addCandidate(@ModelAttribute Candidate candidate) {
+    public String addCandidateSubmit(@ModelAttribute Candidate candidate) {
         candidateService.addCandidate(candidate);
         return "redirect:/admin/dashboard";
     }
 
+    // ------------------ Edit Candidate ------------------
     @GetMapping("/candidates/edit/{id}")
-    public String editForm(@PathVariable Long id, Model model) {
-        candidateService.findById(id).ifPresent(c -> model.addAttribute("candidate", c));
+    public String editCandidateForm(@PathVariable Long id, Model model) {
+        model.addAttribute("candidate", candidateService.findById(id).orElseThrow());
         return "admin/editCandidate";
     }
 
     @PostMapping("/candidates/edit/{id}")
-    public String editCandidate(@PathVariable Long id, @ModelAttribute Candidate candidate) {
-        candidateService.updateCandidate(id, candidate);
+    public String editCandidate(@PathVariable Long id, @ModelAttribute Candidate update) {
+        candidateService.updateCandidate(id, update);
         return "redirect:/admin/dashboard";
     }
 
+    // ------------------ Delete Candidate ------------------
     @PostMapping("/candidates/delete/{id}")
     public String deleteCandidate(@PathVariable Long id) {
         candidateService.deleteCandidate(id);
         return "redirect:/admin/dashboard";
     }
 
-    @PostMapping("/control/toggle")
+    // ------------------ Enable / Disable Voting ------------------
+    @PostMapping("/toggle-voting")
     public String toggleVoting(@RequestParam boolean enabled) {
         electionService.setVotingEnabled(enabled);
         return "redirect:/admin/dashboard";

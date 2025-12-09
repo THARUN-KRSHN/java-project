@@ -1,63 +1,79 @@
-<!DOCTYPE html>
+<!doctype html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Admin Dashboard</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <meta charset="utf-8"/>
+  <title>Admin Dashboard - Election Polling</title>
+  <style>
+    body{font-family:Arial,Helvetica,sans-serif;background:#f3f6ff;margin:0}
+    .wrap{max-width:1100px;margin:36px auto;padding:18px;background:#fff;border-radius:8px;box-shadow:0 8px 22px rgba(0,0,0,.05)}
+    header{display:flex;justify-content:space-between;align-items:center}
+    table{width:100%;border-collapse:collapse;margin-top:12px}
+    th,td{padding:10px;border-bottom:1px solid #eee;text-align:left}
+    .small{font-size:13px;color:#666}
+    .btn{padding:8px 12px;border-radius:6px;border:0;background:#0b66ff;color:#fff;text-decoration:none}
+    form.inline{display:inline}
+  </style>
 </head>
 <body>
-<nav class="navbar navbar-dark bg-dark">
-    <div class="container">
-        <span class="navbar-brand mb-0 h1">Election Admin Panel</span>
-        <form th:action="@{/logout}" method="post">
-            <button class="btn btn-outline-light btn-sm">Logout</button>
+  <div class="wrap">
+    <header>
+      <h2>Admin Dashboard</h2>
+      <div>
+        <a class="btn" href="/admin/candidates/add">Add Candidate</a>
+        <a style="margin-left:8px" href="/logout">Logout</a>
+      </div>
+    </header>
+
+    <section style="margin-top:14px">
+      <div>
+        <strong>Voting Status:</strong>
+        <span th:text="${control.votingEnabled} ? 'ENABLED' : 'DISABLED'"></span>
+
+        <!-- Toggle voting form -->
+        <form th:action="@{/admin/toggle-voting}" method="post" style="display:inline-block;margin-left:12px">
+          <!-- If CSRF later: include token -->
+          <input type="hidden" name="enabled" th:value="${!control.votingEnabled}"/>
+          <button type="submit" class="btn" style="background:#0a9b4a" th:text="${control.votingEnabled} ? 'Stop Voting' : 'Start Voting'"></button>
         </form>
-    </div>
-</nav>
+      </div>
 
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>Manage Candidates</h2>
-        <div>
-            <a th:href="@{/admin/toggle-election}" 
-               th:class="${votingOpen} ? 'btn btn-danger' : 'btn btn-success'"
-               th:text="${votingOpen} ? 'Stop Election' : 'Start Election'">
-            </a>
-            <a th:href="@{/admin/add-candidate}" class="btn btn-primary ms-2">+ Add Candidate</a>
-        </div>
-    </div>
+      <h3 style="margin-top:20px">Candidates</h3>
 
-    <div class="alert alert-info" th:if="${votingOpen}">
-        <strong>Status:</strong> Voting is currently OPEN.
-    </div>
-    <div class="alert alert-warning" th:unless="${votingOpen}">
-        <strong>Status:</strong> Voting is CLOSED.
-    </div>
-
-    <table class="table table-bordered table-hover">
-        <thead class="table-dark">
-        <tr>
-            <th>Logo</th>
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
             <th>Name</th>
+            <th>Symbol</th>
             <th>Category</th>
             <th>Votes</th>
             <th>Actions</th>
-        </tr>
+          </tr>
         </thead>
         <tbody>
-        <tr th:each="candidate : ${candidates}">
+          <tr th:each="c,iterStat : ${candidates}">
+            <td th:text="${iterStat.index + 1}">1</td>
+            <td th:text="${c.name}">Candidate Name</td>
             <td>
-                <img th:if="${candidate.logoPath}" th:src="@{'/uploads/' + ${candidate.logoPath}}" width="50" height="50" class="rounded-circle">
-                <span th:unless="${candidate.logoPath}">No Image</span>
+              <img th:if="${c.symbolUrl}" th:src="${c.symbolUrl}" alt="symbol" style="height:40px"/>
+              <span th:if="${!c.symbolUrl}" class="small">No symbol</span>
             </td>
-            <td th:text="${candidate.name}"></td>
-            <td th:text="${candidate.category}"></td>
-            <td th:text="${candidate.voteCount}" class="fw-bold"></td>
+            <td th:text="${c.category}">Category</td>
+            <td th:text="${c.voteCount}">0</td>
             <td>
-                <a th:href="@{'/admin/delete-candidate/' + ${candidate.id}}" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure?')">Delete</a>
-            </td>
-        </tr>
+              <a th:href="@{|/admin/candidates/edit/${c.id}|}" class="small">Edit</a>
+
+              <form class="inline" th:action="@{|/admin/candidates/delete/${c.id}|}" method="post" onsubmit="return confirm('Delete candidate?');">
+                <button type="submit" style="background:#ff4d4f;color:#fff;border:0;padding:6px 8px;border-radius:6px;margin-left:8px">Delete</button>
+              </form>
+            <td/>
+          </tr>
+          <tr th:if="${#lists.isEmpty(candidates)}">
+            <td colspan="6" class="small">No candidates found. <a href="/admin/candidates/add">Add one</a>.</td>
+          </tr>
         </tbody>
-    </table>
-</div>
+      </table>
+    </section>
+  </div>
 </body>
 </html>

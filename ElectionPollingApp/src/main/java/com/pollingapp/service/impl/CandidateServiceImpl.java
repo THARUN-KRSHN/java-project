@@ -3,6 +3,7 @@ package com.pollingapp.service.impl;
 import com.pollingapp.model.Candidate;
 import com.pollingapp.repository.CandidateRepository;
 import com.pollingapp.service.CandidateService;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
@@ -25,11 +26,14 @@ public class CandidateServiceImpl implements CandidateService {
 
     @Override
     public Candidate updateCandidate(Long id, Candidate update) {
-        Candidate c = repo.findById(id).orElseThrow(() -> new IllegalArgumentException("Candidate not found"));
-        c.setName(update.getName());
-        c.setCategory(update.getCategory());
-        c.setSymbolUrl(update.getSymbolUrl());
-        return repo.save(c);
+        Candidate existing = repo.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Candidate not found"));
+
+        existing.setName(update.getName());
+        existing.setCategory(update.getCategory());
+        existing.setSymbolUrl(update.getSymbolUrl());
+
+        return repo.save(existing);
     }
 
     @Override
@@ -54,7 +58,9 @@ public class CandidateServiceImpl implements CandidateService {
 
     @Override
     public Candidate incrementVote(Long id) {
-        Candidate c = repo.findById(id).orElseThrow(() -> new IllegalArgumentException("Candidate not found"));
+        Candidate c = repo.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Candidate not found"));
+
         c.setVoteCount(c.getVoteCount() + 1);
         return repo.save(c);
     }

@@ -1,38 +1,56 @@
-<!DOCTYPE html>
+<!doctype html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Vote Now</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <meta charset="utf-8"/>
+  <title>Candidate List - Vote</title>
+  <style>
+    body{font-family:Arial,Helvetica,sans-serif;background:#f5f7ff;margin:0}
+    .wrap{max-width:1000px;margin:34px auto;padding:18px;background:#fff;border-radius:8px;box-shadow:0 8px 22px rgba(0,0,0,.04)}
+    .candidate{display:flex;align-items:center;justify-content:space-between;padding:12px;border-bottom:1px solid #f0f1f6}
+    .left{display:flex;align-items:center;gap:12px}
+    .name{font-weight:600}
+    .category{font-size:13px;color:#666}
+    .btn{padding:8px 12px;border-radius:6px;background:#0b66ff;color:#fff;border:0}
+    img.symbol{height:48px}
+    .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+  </style>
 </head>
 <body>
-<nav class="navbar navbar-dark bg-primary">
-    <div class="container">
-        <span class="navbar-brand mb-0 h1">Election Voting Panel</span>
-        <form th:action="@{/logout}" method="post">
-            <button class="btn btn-outline-light btn-sm">Logout</button>
-        </form>
+  <div class="wrap">
+    <div class="top">
+      <div>
+        <h2>Candidates</h2>
+        <div class="small">Logged in as <strong th:text="${username}">user</strong></div>
+      </div>
+      <div>
+        <a href="/logout">Logout</a>
+      </div>
     </div>
-</nav>
 
-<div class="container mt-4">
-    <h2 class="text-center mb-4">Cast Your Vote</h2>
-    <div class="row">
-        <div class="col-md-4 mb-4" th:each="candidate : ${candidates}">
-            <div class="card h-100 shadow-sm text-center p-3">
-                <img th:if="${candidate.logoPath}" th:src="@{'/uploads/' + ${candidate.logoPath}}" 
-                     class="card-img-top mx-auto d-block rounded-circle" style="width: 100px; height: 100px; object-fit: cover;">
-                <div class="card-body">
-                    <h5 class="card-title" th:text="${candidate.name}"></h5>
-                    <p class="card-text text-muted" th:text="${candidate.category}"></p>
-                    <a th:href="@{'/voter/vote/' + ${candidate.id}}" 
-                       class="btn btn-success w-100"
-                       onclick="return confirm('Confirm vote? You cannot undo this.')">
-                        Vote for <span th:text="${candidate.name}"></span>
-                    </a>
-                </div>
-            </div>
-        </div>
+    <div th:if="${!control.votingEnabled}" style="padding:14px;background:#fff5f5;border:1px solid #ffd6d6;border-radius:6px;margin-bottom:14px;color:#b00020">
+      Voting is currently disabled.
     </div>
-</div>
+
+    <div th:each="c : ${candidates}" class="candidate">
+      <div class="left">
+        <div>
+          <img th:if="${c.symbolUrl}" th:src="${c.symbolUrl}" alt="symbol" class="symbol"/>
+        </div>
+        <div>
+          <div class="name" th:text="${c.name}">Candidate Name</div>
+          <div class="category" th:text="${c.category}">Category</div>
+        </div>
+      </div>
+
+      <div>
+        <form th:action="@{|/vote/cast/${c.id}|}" method="post" onsubmit="return confirm('Submit your vote for ' + /*[[${c.name}]]*/ 'this candidate?')">
+          <!-- include CSRF token if needed -->
+          <button class="btn" type="submit" th:disabled="${!control.votingEnabled}">Vote</button>
+        </form>
+      </div>
+    </div>
+
+    <div th:if="${#lists.isEmpty(candidates)}" style="padding:12px;color:#666">No candidates available.</div>
+  </div>
 </body>
 </html>

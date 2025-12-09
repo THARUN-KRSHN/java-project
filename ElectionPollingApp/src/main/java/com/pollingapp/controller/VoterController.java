@@ -1,10 +1,9 @@
 package com.pollingapp.controller;
 
-import com.pollingapp.model.Candidate;
-import com.pollingapp.model.User;
 import com.pollingapp.service.CandidateService;
 import com.pollingapp.service.ElectionService;
 import com.pollingapp.service.UserService;
+
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -24,27 +23,43 @@ public class VoterController {
         this.electionService = electionService;
     }
 
+    // ------------------ List Candidates ------------------
     @GetMapping("/list")
-    public String listCandidates(Model model) {
+    public String listCandidates(Model model, Authentication auth) {
+
         model.addAttribute("candidates", candidateService.listAll());
         model.addAttribute("control", electionService.getControl());
-        return "voter/list";
+        model.addAttribute("username", auth.getName());
+
+        return "voter/list"; // voter/list.html
     }
 
-    @PostMapping("/vote/{candidateId}")
-    public String vote(@PathVariable Long candidateId, Authentication authentication, Model model) {
-        String username = authentication.getName();
-        if (userService.hasUserVoted(username)) {
-            model.addAttribute("error", "You have already voted.");
-            return "voter/result";
-        }
+    // ------------------ Vote ------------------
+    @PostMapping("/cast/{candidateId}")
+    public String castVote(
+            @PathVariable Long candidateId,
+            Authentication auth,
+            Model model) {
+
+        String username = auth.getName();
+
+        // Check if voting is enabled
         if (!electionService.getControl().isVotingEnabled()) {
             model.addAttribute("error", "Voting is currently disabled.");
             return "voter/result";
         }
+
+        // Prevent double voting
+        if (userService.hasUserVoted(username)) {
+            model.addAttribute("error", "You have already voted!");
+            return "voter/result";
+        }
+
+        // Record vote
         candidateService.incrementVote(candidateId);
         userService.markUserVoted(username);
-        model.addAttribute("message", "Vote recorded. You will be logged out.");
-        return "redirect:/logout"; // log the voter out after voting
+
+        // Auto logout after voting
+        return "redirect:/logout";
     }
 }
