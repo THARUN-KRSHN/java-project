@@ -1,0 +1,20 @@
+body {
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    min-height: 100vh;
+    color: #fff;
+}
+.glass-card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 20px;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+.glass-btn {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: none;
+    transition: 0.3s;
+}
+.glass-btn:hover { background: rgba(255, 255, 255, 0.4); }

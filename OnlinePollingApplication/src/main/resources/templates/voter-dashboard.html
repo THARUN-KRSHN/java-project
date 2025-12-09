@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Voter Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/style.css" rel="stylesheet">
+</head>
+<body>
+<div class="container mt-5">
+    
+    <div class="d-flex justify-content-between align-items-center mb-5">
+        <h2>🗳️ Election 2025</h2>
+        <div>
+            <span>Welcome, <b th:text="${user.username}">User</b></span>
+            <form th:action="@{/logout}" method="post" class="d-inline ms-3">
+                <button class="btn btn-sm btn-outline-light">Logout</button>
+            </form>
+        </div>
+    </div>
+
+    <div th:if="${!votingEnabled && !resultsPublished}" class="text-center">
+        <div class="glass-card p-5">
+            <h1 class="display-4">⏳ Polls Open Soon</h1>
+            <p class="lead">Please wait for the administrator to start the election.</p>
+            <div class="row mt-5">
+                <div class="col-md-4" th:each="c : ${candidates}">
+                    <div class="glass-card mb-3">
+                        <h5 th:text="${c.name}">Name</h5>
+                        <p class="small text-white-50" th:text="${c.party}">Party</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div th:if="${votingEnabled && !user.hasVoted}" class="text-center">
+        <h3 class="mb-4">🔴 Live Voting Booth</h3>
+        <div class="row">
+            <div class="col-md-4 mb-4" th:each="c : ${candidates}">
+                <div class="glass-card h-100">
+                    <h2 class="mb-3">👤</h2>
+                    <h4 th:text="${c.name}">Name</h4>
+                    <p class="text-warning" th:text="${c.party}">Party</p>
+                    <form th:action="@{/voter/cast}" method="post">
+                        <input type="hidden" name="candidateId" th:value="${c.id}">
+                        <button class="btn btn-success w-100 mt-3" 
+                                onclick="return confirm('Confirm vote? This cannot be undone.')">
+                            VOTE
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div th:if="${user.hasVoted && !resultsPublished}" class="text-center">
+        <div class="glass-card p-5 d-inline-block">
+            <h1 class="text-success display-1">✅</h1>
+            <h2>Vote Cast Successfully</h2>
+            <p>Thank you for participating. Results will be published soon.</p>
+        </div>
+    </div>
+
+    <div th:if="${resultsPublished}" class="glass-card p-4">
+        <h2 class="text-center mb-4">🏆 Official Results</h2>
+        <div th:each="c : ${candidates}" class="mb-3">
+            <div class="d-flex justify-content-between">
+                <span th:text="${c.name}">Name</span>
+                <span th:text="${c.voteCount} + ' Votes'">0</span>
+            </div>
+            <div class="progress mt-1" style="height: 20px;">
+                <div class="progress-bar bg-warning" 
+                     th:style="'width: ' + (${c.voteCount} * 10) + '%'"></div>
+            </div>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>
